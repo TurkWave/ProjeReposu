@@ -4,5 +4,5 @@
 Dockerfile
 docker-compose.yml
 *.bat
-bekleyen_isyeri_baglantisi.txt
-public/storage
+src/bekleyen_isyeri_baglantisi.txt
+src/public/storage

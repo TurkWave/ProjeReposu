@@ -11,7 +11,7 @@ RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
  && a2enconf front-controller
 
 WORKDIR /var/www/html
-COPY . /var/www/html
+COPY src/ /var/www/html/
 
 # Upload target must exist and be writable by Apache (see app/ayarlar.php 'upload.dir').
 RUN mkdir -p public/storage/uploads \

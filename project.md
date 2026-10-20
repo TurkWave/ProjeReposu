@@ -15,46 +15,47 @@ Staj Takip ve Destek is a mobile-first web app that connects internship students
 ## 🟢 CORE (fill in every project)
 
 ## Project Description
-- Project name: Staj Takip ve Destek (`name` in `app/ayarlar.php`: "Staj Takip")
+- Project name: Staj Takip ve Destek (`name` in `src/app/ayarlar.php`: "Staj Takip")
 - What it does (1-2 sentences): Tracks internships through daily attendance, a student journal, company confirmation and issue reports. Roles are student, teacher and company (token access). There is no live chat.
 - Who it is for: Internship students, their coordinator teachers and the host companies (the UI is in Turkish).
 
 ## Tech Stack
-- Backend: PHP 8.3 (`Dockerfile`: `php:8.3-apache`), custom MVC in `app/` with a hand-written router and manual autoloader, no Composer
-- Frontend: server-rendered PHP views in `app/views/`, vanilla JS (`public/assets/js/arayuz_etkilesimi.js`), CSS (`public/assets/css/gorunum.css`), PWA (`public/manifest.json`, `public/cevrimdisi_hizmeti.js`)
-- Database: MariaDB 10.11 in Docker (`docker-compose.yml`), schema in `sql/schema.sql`
-- ORM: none. PDO with prepared statements (`app/Veritabani.php`) and a thin CRUD base class (`app/TemelModel.php`)
+- Backend: PHP 8.3 (`Dockerfile`: `php:8.3-apache`), custom MVC in `src/app/` with a hand-written router and manual autoloader, no Composer
+- Frontend: server-rendered PHP views in `src/app/views/`, vanilla JS (`src/public/assets/js/arayuz_etkilesimi.js`), CSS (`src/public/assets/css/gorunum.css`), PWA (`src/public/manifest.json`, `src/public/cevrimdisi_hizmeti.js`)
+- Database: MariaDB 10.11 in Docker (`docker-compose.yml`), schema in `src/sql/schema.sql`
+- ORM: none. PDO with prepared statements (`src/app/Veritabani.php`) and a thin CRUD base class (`src/app/TemelModel.php`)
 
 ## Folder Structure
 ```txt
-app/
-├─ baslangic.php          # bootstrap: config, session, autoloader, DB init
-├─ ayarlar.php            # config (reads DB_* env vars)
-├─ Veritabani.php         # PDO setup
-├─ Kimlik.php             # session auth and roles
-├─ Yonlendirici.php       # router
-├─ Denetleyici.php        # base controller (view, CSRF, error)
-├─ TemelModel.php         # base model
-├─ yardimcilar.php        # global helpers and Config
-├─ controllers/           # Giris, Ogrenci, Ogretmen, Isyeri, GenelSayfa
-├─ middleware/            # GirisGerekli, RolGerekli
-├─ models/                # Kullanici, Isyeri, Staj, GunlukYoklama, StajDefteri,
-│                         # IsyeriOnayi, Sorun, SssMaddesi, KontrolMaddesi
-└─ views/                 # layouts, auth, student, teacher, company, static
-public/
-├─ index.php              # front controller with all routes
-├─ istek_yonlendirici.php # router script for php -S
-├─ manifest.json
-├─ cevrimdisi_hizmeti.js  # service worker
-└─ assets/                # css, js, icons
-sql/
-└─ schema.sql
-ornek_verileri_yukle.php  # seed script (deletes existing rows)
-pwa_ikonlari_uret.php     # PWA icon generator
-rota_kontrolu.php         # route smoke check (cURL)
-islev_akisi_testi.php     # end-to-end check (cURL)
 Dockerfile
 docker-compose.yml
+src/
+├─ app/
+│  ├─ baslangic.php          # bootstrap: config, session, autoloader, DB init
+│  ├─ ayarlar.php            # config (reads DB_* env vars)
+│  ├─ Veritabani.php         # PDO setup
+│  ├─ Kimlik.php             # session auth and roles
+│  ├─ Yonlendirici.php       # router
+│  ├─ Denetleyici.php        # base controller (view, CSRF, error)
+│  ├─ TemelModel.php         # base model
+│  ├─ yardimcilar.php        # global helpers and Config
+│  ├─ controllers/           # Giris, Ogrenci, Ogretmen, Isyeri, GenelSayfa
+│  ├─ middleware/            # GirisGerekli, RolGerekli
+│  ├─ models/                # Kullanici, Isyeri, Staj, GunlukYoklama, StajDefteri,
+│  │                         # IsyeriOnayi, Sorun, SssMaddesi, KontrolMaddesi
+│  └─ views/                 # layouts, auth, student, teacher, company, static
+├─ public/
+│  ├─ index.php              # front controller with all routes
+│  ├─ istek_yonlendirici.php # router script for php -S
+│  ├─ manifest.json
+│  ├─ cevrimdisi_hizmeti.js  # service worker
+│  └─ assets/                # css, js, icons
+├─ sql/
+│  └─ schema.sql
+├─ ornek_verileri_yukle.php  # seed script (deletes existing rows)
+├─ pwa_ikonlari_uret.php     # PWA icon generator
+├─ rota_kontrolu.php         # route smoke check (cURL)
+└─ islev_akisi_testi.php     # end-to-end check (cURL)
 ```
 
 ## Installation
@@ -65,18 +66,18 @@ docker compose up -d --build
 docker compose exec web php ornek_verileri_yukle.php   # seed data, deletes all rows in staj_app
 
 # Without Docker (XAMPP): schema, seed data, then dev server
-mysql -u root < sql/schema.sql
-php ornek_verileri_yukle.php
-php -S 127.0.0.1:8765 -t public public/istek_yonlendirici.php
+mysql -u root < src/sql/schema.sql
+php src/ornek_verileri_yukle.php
+php -S 127.0.0.1:8765 -t src/public src/public/istek_yonlendirici.php
 
 # Regenerate PWA icons (pure PHP, no GD)
-php pwa_ikonlari_uret.php
+php src/pwa_ikonlari_uret.php
 ```
 
 ## Environment Variables
 
 ```env
-# read by app/ayarlar.php and docker-compose.yml
+# read by src/app/ayarlar.php and docker-compose.yml
 DB_HOST=
 DB_NAME=
 DB_USER=
@@ -91,9 +92,9 @@ STAJ_BASE_URL=
 
 ### Allowed
 
-* Database access through PDO prepared statements (`app/Veritabani.php` sets `ATTR_EMULATE_PREPARES => false` and `ERRMODE_EXCEPTION`).
-* Escape output with `e()` from `app/yardimcilar.php`.
-* New classes need an entry in the `$files` map of the autoloader in `app/baslangic.php`.
+* Database access through PDO prepared statements (`src/app/Veritabani.php` sets `ATTR_EMULATE_PREPARES => false` and `ERRMODE_EXCEPTION`).
+* Escape output with `e()` from `src/app/yardimcilar.php`.
+* New classes need an entry in the `$files` map of the autoloader in `src/app/baslangic.php`.
 * `declare(strict_types=1)` at the top of PHP files.
 
 ### Forbidden
@@ -108,29 +109,29 @@ STAJ_BASE_URL=
 
 > Write a one-sentence reason next to each choice. You will need it in 6 months.
 
-* Plain PHP MVC with a custom router and autoloader: `app/baslangic.php` states "composer yok", so the project has no dependency manager.
-* Single front controller: `public/index.php` registers every route, and Apache uses `FallbackResource /index.php` (`Dockerfile`).
-* Company access by single-use token instead of an account: `app/ayarlar.php` sets `company.token_bytes` 32 and `ttl_days` 14, and `/company/{token}` is public.
-* Consent stored in the database: `sql/schema.sql` has a `consents` table and `users.is_minor` / `parent_consent_given` columns.
+* Plain PHP MVC with a custom router and autoloader: `src/app/baslangic.php` states "composer yok", so the project has no dependency manager.
+* Single front controller: `src/public/index.php` registers every route, and Apache uses `FallbackResource /index.php` (`Dockerfile`).
+* Company access by single-use token instead of an account: `src/app/ayarlar.php` sets `company.token_bytes` 32 and `ttl_days` 14, and `/company/{token}` is public.
+* Consent stored in the database: `src/sql/schema.sql` has a `consents` table and `users.is_minor` / `parent_consent_given` columns.
 
 ## Fine Tuning
 
 * Realtime: none (no live chat)
-* Cache: service worker for offline use (`public/cevrimdisi_hizmeti.js`)
+* Cache: service worker for offline use (`src/public/cevrimdisi_hizmeti.js`)
 * Queue:
 * Container: Docker, `web` (PHP 8.3 + Apache) and `db` (MariaDB 10.11) services in `docker-compose.yml`
-* Auth: session based. `app/Kimlik.php` uses `password_verify`, `password_hash` and `session_regenerate_id(true)`. Roles are enforced by `app/middleware/RolGerekli.php`. Company users use a token.
-* Storage: local disk, `public/storage/uploads` (2 MB, JPEG/PNG/WebP, `upload` in `app/ayarlar.php`), mounted as the `uploads` volume
+* Auth: session based. `src/app/Kimlik.php` uses `password_verify`, `password_hash` and `session_regenerate_id(true)`. Roles are enforced by `src/app/middleware/RolGerekli.php`. Company users use a token.
+* Storage: local disk, `src/public/storage/uploads` (2 MB, JPEG/PNG/WebP, `upload` in `src/app/ayarlar.php`), mounted as the `uploads` volume
 
 ## API Contract
 
-* Style: server-rendered pages with form posts. `Controller::json()` exists in `app/Denetleyici.php`, no REST API is defined in `public/index.php`.
+* Style: server-rendered pages with form posts. `Controller::json()` exists in `src/app/Denetleyici.php`, no REST API is defined in `src/public/index.php`.
 * Versioning:
 * Response format:
 
 ## Database / Migration Strategy
 
-* Migration management: none. `sql/schema.sql` is loaded once by the MariaDB image on an empty `db_data` volume (`docker-compose.yml`).
+* Migration management: none. `src/sql/schema.sql` is loaded once by the MariaDB image on an empty `db_data` volume (`docker-compose.yml`).
 * Naming convention: snake_case English table and column names (`users`, `daily_records`, `company_confirmations`, `password_hash`)
 
 ## State Management (Frontend)
@@ -140,7 +141,7 @@ STAJ_BASE_URL=
 
 ## Error Handling Strategy
 
-* Global error handling approach: `Controller::error()` in `app/Denetleyici.php` prints an HTML error page and exits. `app/Veritabani.php` catches `PDOException` on connect and shows a 500 page, with the message only when `app.debug` is true. `RolGerekli` returns a 403 page.
+* Global error handling approach: `Controller::error()` in `src/app/Denetleyici.php` prints an HTML error page and exits. `src/app/Veritabani.php` catches `PDOException` on connect and shows a 500 page, with the message only when `app.debug` is true. `RolGerekli` returns a 403 page.
 * Custom exception structure: none
 
 ## Dependencies
