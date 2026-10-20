@@ -1,0 +1,8 @@
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yml
+*.bat
+bekleyen_isyeri_baglantisi.txt
+public/storage

@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-staj_root_dev}
+      MARIADB_DATABASE: staj_app
+      MARIADB_USER: ${DB_USER:-staj}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-staj_dev_pass}
+    volumes:
+      - db_data:/var/lib/mysql
+      # Runs once, only while db_data is empty. sql/schema.sql creates the tables.
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: staj_app
+      DB_USER: ${DB_USER:-staj}
+      DB_PASSWORD: ${DB_PASSWORD:-staj_dev_pass}
+    ports:
+      # Host 8080 is reserved for the local LLM server; override with WEB_PORT.
+      - "${WEB_PORT:-8081}:80"
+    volumes:
+      - uploads:/var/www/html/public/storage/uploads
+
+volumes:
+  db_data:
+  uploads:

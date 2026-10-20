@@ -7,10 +7,10 @@ declare(strict_types=1);
 return [
     // --- Veritabanı (XAMPP / MariaDB) ---
     'db' => [
-        'host'     => '127.0.0.1',
-        'name'     => 'staj_app',
-        'user'     => 'root',
-        'password' => '',
+        'host'     => getenv('DB_HOST') ?: '127.0.0.1',
+        'name'     => getenv('DB_NAME') ?: 'staj_app',
+        'user'     => getenv('DB_USER') ?: 'root',
+        'password' => getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '',
         'charset'  => 'utf8mb4',
         'collate'  => 'utf8mb4_unicode_ci',
     ],

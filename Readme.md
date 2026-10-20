@@ -8,30 +8,51 @@ Arayüz lacivert ve sıcak altın tonlarıyla yenilenmiştir. Herhangi bir üniv
 amblem veya logo kullanılmaz. Tüm metinler Türkçe karakterleri destekleyecek şekilde
 UTF-8 kodlanır.
 
-## Kurulum (Windows / XAMPP varsayımıyla)
+## Setup with Docker (recommended)
 
-1. **`app/ayarlar.php`** içindeki veritabanı kullanıcı adı ve parolasını kontrol edin:
-   ```php
-   'db'  => ['host'=>'127.0.0.1','name'=>'staj_app','user'=>'root','password'=>'','charset'=>'utf8mb4'],
-   'app' => ['base_url'=>'','debug'=>true],
+Requires Docker with Compose. The stack is a PHP 8.3 + Apache `web` container and a
+MariaDB 10.11 `db` container.
+
+```sh
+docker compose up -d --build
+docker compose exec web php ornek_verileri_yukle.php
+```
+
+1. The app is served at **http://127.0.0.1:8081**. Change the host port with the
+   `WEB_PORT` environment variable (host port 8080 is not used by this project).
+2. `sql/schema.sql` is loaded automatically the first time the `db` container starts
+   with an empty `db_data` volume. It is not re-applied on later starts.
+3. `ornek_verileri_yukle.php` loads the sample data. **It deletes all existing rows**
+   in `staj_app` before inserting, so run it on a fresh database only.
+4. Database settings come from the `DB_HOST`, `DB_NAME`, `DB_USER` and `DB_PASSWORD`
+   environment variables read by `app/ayarlar.php`. `docker-compose.yml` sets
+   development defaults (override `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, e.g. via
+   a `.env` file). `DB_NAME` must stay `staj_app` because `sql/schema.sql` hardcodes it.
+5. Data lives in the `db_data` (database) and `uploads` (uploaded photos) volumes.
+   `docker compose down` keeps them; `docker compose down -v` deletes them.
+
+## Setup without Docker (XAMPP)
+
+1. Without the environment variables above, `app/ayarlar.php` falls back to
+   `127.0.0.1`, database `staj_app`, user `root`, empty password. Adjust the environment
+   or the file if your MySQL differs. An empty `base_url` makes the app derive its
+   address from the request.
+2. Start **Apache** and **MySQL** from the XAMPP Control Panel and point Apache at the
+   `public` directory of the project.
+3. Create the database and sample data (destructive, drops `staj_app`):
+   ```sh
+   mysql -u root -e "DROP DATABASE IF EXISTS staj_app;"
+   mysql -u root < sql/schema.sql
+   php ornek_verileri_yukle.php
    ```
-   `base_url` boşken uygulama adresini Apache isteğinden otomatik belirler.
-2. XAMPP Control Panel'den **Apache** ve **MySQL** servislerini başlatın. Bu bilgisayarda
-   Apache, `C:\xampp\apache\conf\extra\httpd-stajtakip.conf` ile proje klasörünün
-   `public` dizinine yönlendirilmiş ve yalnızca bu bilgisayardan erişilecek şekilde ayarlanmıştır.
-3. Tarayıcıda uygulamayı açın: **http://127.0.0.1:8080**
-4. İlk kurulumda veritabanı yoksa **veritabanı + örnek veriler**:
-   ```bat
-   veritabaniyi_kur.bat
-   ```
-   Betik çalıştırmadan önce onay ister. `staj_app` veritabanındaki mevcut tüm
-   kayıtları silip örnek verileri yeniden kurar.
-5. Geliştirme sunucusu (isteğe bağlı alternatif): `yerel_sunucuyu_baslat.bat` ile
-   `http://127.0.0.1:8765` adresinde çalıştırılabilir.
-6. **PWA ikonları** (GD yok, saf PHP + zlib):
-   ```bat
-   php pwa_ikonlari_uret.php
-   ```
+4. Optional development server: `php -S 127.0.0.1:8765 -t public public/istek_yonlendirici.php`
+
+## PWA icons
+
+No GD needed (pure PHP + zlib):
+```sh
+php pwa_ikonlari_uret.php
+```
 
 ## Örnek (seed) veriler
 
@@ -105,13 +126,11 @@ staj projesi/
 ├── sql/schema.sql          # şema (FK + UNIQUE constraint’ları)
 ├── ornek_verileri_yukle.php                # 1 öğretmen, 5 öğrenci, 2 işletme, 5 staj
 ├── pwa_ikonlari_uret.php               # GD’sız PWA ikon (192/512), zlib
-├── veritabaniyi_kur.bat            # Reset DB + schema + seed
-├── veritabaniyi_kontrol.bat           # DB kontrol sorguları
-├── php_denetimi.bat                # tüm PHP dosyaları için php -l
-├── yerel_sunucuyu_baslat.bat        # php -S dev sunucusunu başlatır
-├── xampp_dogrulamasi.bat        # XAMPP Apache üzerinde smoke + akış testleri
-├── islev_akisi_testi.php / .bat    # headless (cURL) uçtan uca test
-└── ACIKLAMA.md
+├── rota_kontrolu.php               # route smoke check (cURL)
+├── islev_akisi_testi.php           # headless (cURL) end-to-end test
+├── Dockerfile                      # PHP 8.3 + Apache image
+├── docker-compose.yml              # web + MariaDB stack
+└── .dockerignore
 ```
 
 > Not: kayıtta `KVKK` aydınlatma metni zorunlu; 18 yaş altı için veli onayı
@@ -120,17 +139,22 @@ staj projesi/
 
 ## Test / doğrulama
 
-```bat
-php_denetimi.bat
-yerel_sunucuyu_baslat.bat
-tum_dogrulamalari_calistir.bat
+`rota_kontrolu.php` and `islev_akisi_testi.php` run from the host with PHP (cURL
+extension) and read the target address from `STAJ_BASE_URL` (default
+`http://127.0.0.1:8765`). Against the Docker stack:
+
+```sh
+STAJ_BASE_URL=http://127.0.0.1:8081 php rota_kontrolu.php
+STAJ_BASE_URL=http://127.0.0.1:8081 php islev_akisi_testi.php
 ```
 
-`tum_dogrulamalari_calistir.bat` geliştirme sunucusunu, `xampp_dogrulamasi.bat` ise Apache'yi test eder.
-İkisi de PHP sözdizimini, ikon üretimini, 10 temel rotayı ve öğretmen/öğrenci/
-işletme akışlarını doğrular. Mevcut `bekleyen_isyeri_baglantisi.txt` tek kullanımlık token'ı
-daha önce tamamlanmışsa işletme gönderimini tekrar etmeden tamamlanmış onayı doğrular.
-Test, veritabanını sıfırlamaz; sorun bildirimi testi geçici kayıt oluşturup siler.
+`islev_akisi_testi.php` reads the company link token from
+`bekleyen_isyeri_baglantisi.txt` in the project root. The seed script writes that file
+inside the container, so copy it out first:
+`docker compose cp web:/var/www/html/bekleyen_isyeri_baglantisi.txt .`
+
+The tests do not reset the database; the issue-report test creates a temporary record
+and deletes it. Syntax check for all PHP files: `php -l <file>` per file.
 
 `islev_akisi_testi.php` beklenen çıktı:
 ```
@@ -141,9 +165,7 @@ PASS olmayan rota 404 döndürüyor
 FUNCTIONAL PASSED
 ```
 
-Doğrulama (veritabaniyi_kontrol.bat):
-- Fonksiyon testi geçici bir sorun kaydı oluşturur ve uygulama üzerinden siler.
-- `bekleyen_isyeri_baglantisi.txt` seed sırasında üretilen tek kullanımlık örnek işletme linkidir.
+`bekleyen_isyeri_baglantisi.txt` is the single-use sample company link produced by the seed script.
 
 ## Bilinen sınırlamalar / MVP dışı
 
